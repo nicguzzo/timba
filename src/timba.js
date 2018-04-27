@@ -67,13 +67,13 @@ export function initStacks(parsed){
   }
 
   console.log("pilas",pilasByName)
-  return pilas;
+  return [pilas,mano];
 }
 function tomar(name){
   if (pilasByName[name].length>0){
     if(mano.length==0){
       mano.push(pilasByName[name].pop())
-      //console.log(mano)
+      //console.log('mano',mano)
     }else{
       throw new Error("no puedo tomar, ya tengo carta en la mano")
     }
@@ -102,7 +102,7 @@ function invertir(){
   }
 };
 function runOp(op){
-  //console.log(op)
+  //console.log('op',op)
   switch(op.op){
     case "t"://tomar
       tomar(op.name);
@@ -237,14 +237,125 @@ function _runProgram(sentencias){
   }
 }
 export function runProgram(sentencias,cbk){
-  return new Promise((resolve,reject)=>{
-    try{
-      _runProgram(sentencias)
-      resolve()
-    }catch(e){
-      reject(e)
-    }finally{
-      cbk()
+  
+  try{
+    _runProgram(sentencias)
+  }catch(e){
+    console.error(e.message)
+    alert(e.message)
+  }finally{
+    cbk()
+  }
+  
+}
+let executionStack=[]
+let stackLevel=0
+let executionTimer=null
+
+
+export function nextOP(){
+  //console.log('stackLevel',stackLevel)
+  try{
+    let eStack=executionStack[stackLevel]
+    if(stackLevel===0 && eStack.sentences && eStack.num>=eStack.sentences.length){
+      console.log("stopping")
+      clearInterval(executionTimer)
+      return
     }
-  })
+    if(eStack){
+      //console.log('eStack',eStack)
+      if(eStack.sentences[eStack.num] && eStack.sentences[eStack.num].conditions){
+        //console.log('.type ',eStack.sentences[eStack.num])
+        if( eStack.sentences[eStack.num].type==="c"){
+          if( eStack.sentences[eStack.num].control==="w"){
+            
+            if(cond(eStack.sentences[eStack.num].conditions)){
+              if(eStack.sentences && eStack.num>=eStack.sentences.length){
+                executionStack[stackLevel].num=0
+              }
+            }else{
+              console.log("wwww= ") 
+              executionStack[stackLevel].num++
+              if(stackLevel>=1){
+                executionStack.pop()
+                stackLevel--
+              }
+            }
+          }else{
+            if( eStack.sentences[eStack.num].control==="i"){
+              if(eStack.sentences && eStack.num>=eStack.sentences.length){
+                
+                if(stackLevel>=1){
+                  executionStack.pop()
+                  stackLevel--
+                }
+              }
+            }
+          }
+        }
+      }
+      if(eStack.sentences && eStack.num<eStack.sentences.length){
+
+        switch(eStack.sentences[eStack.num].type)
+        {
+          case "o"://operativas
+            runOp(eStack.sentences[eStack.num]);
+            executionStack[stackLevel].num++
+          break;
+          case "c":// control
+
+            if( eStack.sentences[eStack.num].control==="w"){
+              //console.log("tttt= ")  
+              executionStack.push({
+                num: 0,
+                sentences: eStack.sentences[eStack.num].sentencias,
+              })
+              //executionStack[stackLevel].num++
+              stackLevel++
+            }
+            if( eStack.sentences[eStack.num].control==="i"){
+              //console.log("iiii= ") 
+              if(cond(eStack.sentences[eStack.num].conditions)){
+                executionStack.push({
+                  num: 0,
+                  sentences:  eStack.sentences[eStack.num].on_true
+                })
+              }else{
+                executionStack.push({
+                  num: 0,
+                  sentences:  eStack.sentences[eStack.num].on_false
+                })
+              }
+              executionStack[stackLevel].num++
+              stackLevel++
+            }
+          break;
+        }
+      }else{
+        executionStack[stackLevel].num++
+        if(stackLevel>=1){
+          executionStack.pop()
+          stackLevel--
+        }
+      }
+    }
+  }catch(e){
+    clearInterval(executionTimer)
+    console.error(e.message)
+    alert(e.message)
+  }
+}
+export function debugProgram(sentencias,timeout=0,upd){
+  executionStack=[]
+  stackLevel=0
+  if(sentencias.length>0){
+    executionStack.push({num: 0,sentences:sentencias})
+  }
+  //console.log('executionStack',executionStack)
+  if(timeout>0){
+    executionTimer=setInterval(()=>{
+        nextOP()
+        upd()
+    }, timeout)
+  }
 }
