@@ -11,14 +11,8 @@ function shuffle(a) {
     a[j] = x;
   }
 }
-function wait(ms)
-{
-var d = new Date();
-var d2 = null;
-do { d2 = new Date(); }
-while(d2-d < ms);
-}
-export function init_stacks(parsed){
+
+export function initStacks(parsed){
 
   const palos=["bastos","copas","espadas","oros"];
   const valores=[1,2,3,4,5,6,7,10,11,12];
@@ -27,8 +21,7 @@ export function init_stacks(parsed){
     let pila={};
     pila.name=parsed.pilas[p].nombre
     pila.cards=[]
-    let e=parsed.pilas[p].contenido.estado;
-    let ee=e;
+    
     switch(parsed.pilas[p].contenido.tipo){
       case "vacio":
       break;
@@ -41,10 +34,11 @@ export function init_stacks(parsed){
        
         for (let i = 0, plen = palos.length; i < plen; i++) {
           for (let j = 0, vlen = valores.length; j < vlen; j++) {
-            if (e==2){
-              ee=Math.floor(Math.random() * 2);
+            let e=parsed.pilas[p].contenido.estado;
+            if (e===2){
+              e=Math.floor(Math.random() * 2);
             }
-            pila.push({num: valores[j],palo: palos[i],estado: ee})
+            pila.push({num: valores[j],palo: palos[i],estado: e})
           }
         }
         shuffle(pila.cards);
@@ -54,11 +48,11 @@ export function init_stacks(parsed){
         let tmp=[];
         for (let i = 0, plen = palos.length; i < plen; i++) {
           for (let j = 0, vlen = valores.length; j < vlen; j++) {
-            //console.log({num: parseInt(valores[j]),palo: palos[i]})
-            if (e==2){
-              ee=Math.floor(Math.random() * 2);
+            let e=parsed.pilas[p].contenido.estado;
+            if (e===2){
+              e=Math.floor(Math.random() * 2);
             }
-            tmp.push({num: valores[j],palo: palos[i],estado: ee})
+            tmp.push({num: valores[j],palo: palos[i],estado: e})
           }
         }
         for (let k = 0; k < parsed.pilas[p].contenido.n ; k++){
@@ -107,7 +101,7 @@ function invertir(){
     throw new Error("no puedo invertir, no tengo carta en la mano")
   }
 };
-function run_op(op){
+function runOp(op){
   //console.log(op)
   switch(op.op){
     case "t"://tomar
@@ -211,29 +205,29 @@ let cond=function(conditions){
     //console.log(r);
     return r;
   }
-function _run_program(sentencias){
+function _runProgram(sentencias){
   let l=sentencias.length;
   for(let i=0;i<l;i++){
     //console.log(sentencias[i].type)
     switch(sentencias[i].type)
     {
       case "o"://operativas
-        run_op(sentencias[i]);
+        runOp(sentencias[i]);
       break;
       case "c":// control
         switch(sentencias[i].control)
         {
           case "w":
             while(cond(sentencias[i].conditions)){
-              _run_program(sentencias[i].sentencias);
+              _runProgram(sentencias[i].sentencias);
             }
           break;
           case "i":
             if(cond(sentencias[i].conditions)){
-              _run_program(sentencias[i].on_true);
+              _runProgram(sentencias[i].on_true);
             }else{
               if(sentencias[i].on_false!=null){
-                _run_program(sentencias[i].on_false);
+                _runProgram(sentencias[i].on_false);
               }
             }
           break;
@@ -242,10 +236,10 @@ function _run_program(sentencias){
     }
   }
 }
-export function run_program(sentencias,cbk){
+export function runProgram(sentencias,cbk){
   return new Promise((resolve,reject)=>{
     try{
-      _run_program(sentencias)
+      _runProgram(sentencias)
       resolve()
     }catch(e){
       reject(e)

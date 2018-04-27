@@ -45,7 +45,7 @@ class App extends Component {
       //representation of the tree, and create the stacks
       parsed=parser.parse(this.state.code.toLowerCase());
       this.setState({parsed: parsed}, () => {
-        let pilas=timba.init_stacks(parsed)
+        let pilas=timba.initStacks(parsed)
         this.setState( { stacks: pilas } )
       });
     }catch(err){
@@ -70,8 +70,8 @@ class App extends Component {
   }
   onRun= (e) => { 
     e.preventDefault()
-    timba.run_program(this.state.parsed.sentencias,s =>{
-      this.setState( { stacks: this.state.stacks },this.forceUpdate())
+    timba.runProgram(this.state.parsed.sentencias,s =>{
+      this.setState( { stacks: this.state.stacks })
     }).then(()=>{
       //this.setState( { stacks: this.state.stacks } )
     }).catch( (e)=>{
