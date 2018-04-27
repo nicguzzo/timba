@@ -19,9 +19,9 @@ class App extends Component {
       this.setState({code: response.data})
     });
   }
-  updateCode= (newCode) => {
+  updateCode= (e) => {
     this.setState({
-      code: newCode,
+      code: e.target.value,
     });
   }
   onLoadFile = (e) =>{
