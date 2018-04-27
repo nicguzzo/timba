@@ -80,7 +80,7 @@ class App extends Component {
   }
   onRunS= (e) => {
     this.setState( { debug:false })
-    timba.debugProgram(this.state.parsed.sentencias,20,()=>this.setState( { stacks: this.state.stacks,debug:false }) )
+    timba.debugProgram(this.state.parsed.sentencias,100,()=>this.setState( { stacks: this.state.stacks,debug:false }) )
   }
   onDebug= (e) => { 
     e.preventDefault()
