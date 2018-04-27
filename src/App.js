@@ -48,8 +48,6 @@ class App extends Component {
         let pilas=timba.init_stacks(parsed)
         this.setState( { stacks: pilas } )
       });
-
-
     }catch(err){
       // in case of syntax error, create error message and display it
       console.dir(err);
@@ -70,16 +68,23 @@ class App extends Component {
     e.preventDefault()
     this.parse();
   }
-  onRun= (e) => {
+  onRun= (e) => { 
     e.preventDefault()
-    timba.run_program(this.state.parsed.sentencias)
+    timba.run_program(this.state.parsed.sentencias,s =>{
+      this.setState( { stacks: this.state.stacks },this.forceUpdate())
+    }).then(()=>{
+      //this.setState( { stacks: this.state.stacks } )
+    }).catch( (e)=>{
+      alert(e.message)
+      //this.setState( { stacks: this.state.stacks } )
+    })
   }
   render() {
-    let render_stacks=this.state.stacks.map( function(s,i){
-      console.log(s)
-      console.log(i)
-      return <Stack stackName={s.name} cards={s.cards} x={650+i*120} y={20} key={"stack_"+i}/>
-    },this);
+    let render_stacks=this.state.stacks.map( (s,i)=>{
+      //console.log(s)
+      //console.log(i)
+      return <Stack stackName={s.name} cards={s.cards} x={650+i*120} y={20} key={'stack_'+i} />
+    },this)
     return (
       <div>
         <div style={{width:600}} >

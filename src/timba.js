@@ -1,7 +1,9 @@
 let pilas=[]
-let mano={}
+let pilasByName={}
+let mano=[]
+
 function shuffle(a) {
-  var j, x, i;
+  let j, x, i;
   for (i = a.length; i; i--) {
     j = Math.floor(Math.random() * i);
     x = a[i - 1];
@@ -9,28 +11,36 @@ function shuffle(a) {
     a[j] = x;
   }
 }
+function wait(ms)
+{
+var d = new Date();
+var d2 = null;
+do { d2 = new Date(); }
+while(d2-d < ms);
+}
 export function init_stacks(parsed){
 
   const palos=["bastos","copas","espadas","oros"];
   const valores=[1,2,3,4,5,6,7,10,11,12];
 
-  for (var p = 0, len = parsed.pilas.length; p < len; p++) {
+  for (let p = 0, len = parsed.pilas.length; p < len; p++) {
     let pila={};
     pila.name=parsed.pilas[p].nombre
     pila.cards=[]
+    let e=parsed.pilas[p].contenido.estado;
+    let ee=e;
     switch(parsed.pilas[p].contenido.tipo){
       case "vacio":
       break;
       case "lista":
-        for (var c = 0, len2 = parsed.pilas[p].contenido.list.length; c < len2; c++) {
+        for (let c = 0, len2 = parsed.pilas[p].contenido.list.length; c < len2; c++) {
           pila.cards.push(parsed.pilas[p].contenido.list[c]);
         }
       break;
       case "mazo_completo":
-        var e=parsed.pilas[p].contenido.estado;
-        var ee=e;
-        for (var i = 0, plen = palos.length; i < plen; i++) {
-          for (var j = 0, vlen = valores.length; j < vlen; j++) {
+       
+        for (let i = 0, plen = palos.length; i < plen; i++) {
+          for (let j = 0, vlen = valores.length; j < vlen; j++) {
             if (e==2){
               ee=Math.floor(Math.random() * 2);
             }
@@ -40,11 +50,10 @@ export function init_stacks(parsed){
         shuffle(pila.cards);
       break;
       case "mazo_n_cartas":
-        var e=parsed.pilas[p].contenido.estado;
-        var ee=e;
-        var tmp=[];
-        for (var i = 0, plen = palos.length; i < plen; i++) {
-          for (var j = 0, vlen = valores.length; j < vlen; j++) {
+        
+        let tmp=[];
+        for (let i = 0, plen = palos.length; i < plen; i++) {
+          for (let j = 0, vlen = valores.length; j < vlen; j++) {
             //console.log({num: parseInt(valores[j]),palo: palos[i]})
             if (e==2){
               ee=Math.floor(Math.random() * 2);
@@ -52,36 +61,37 @@ export function init_stacks(parsed){
             tmp.push({num: valores[j],palo: palos[i],estado: ee})
           }
         }
-        for (var k = 0; k < parsed.pilas[p].contenido.n ; k++){
-          var i=Math.floor(Math.random() * tmp.length);
+        for (let k = 0; k < parsed.pilas[p].contenido.n ; k++){
+          let i=Math.floor(Math.random() * tmp.length);
           pila.cards.push(tmp[i]);
           tmp.splice(i,1);
         }
       break;
     }
     pilas.push(pila)
+    pilasByName[pila.name]=pila.cards
   }
-  //this.setState( { stacks: pilas } )
-  console.log("pilas",pilas)
+
+  console.log("pilas",pilasByName)
   return pilas;
 }
 function tomar(name){
-  if (pilas[name].length>0){
+  if (pilasByName[name].length>0){
     if(mano.length==0){
-      mano.push(pilas[name].pop())
+      mano.push(pilasByName[name].pop())
       //console.log(mano)
     }else{
-      console.log("no puedo tomar, ya tengo carta en la mano");
+      throw new Error("no puedo tomar, ya tengo carta en la mano")
     }
   }else{
-    console.log("no puedo tomar, la pila "+name+" esta vacia");
+    throw new Error("no puedo tomar, la pila "+name+" esta vacia")
   }
 }
 function depositar(name){
   if(mano.length==1){
-    pilas[name].push(mano.pop());
+    pilasByName[name].push(mano.pop());
   }else{
-    console.log("no puedo depositar, no tengo carta en la mano");
+    throw new Error("no puedo depositar, no tengo carta en la mano")
   }
 }
 function invertir(){
@@ -94,11 +104,11 @@ function invertir(){
     }
     //console.log("after "+mano.estado+"\n\n");
   }else{
-    console.log("no puedo invertir, no tengo carta en la mano");
+    throw new Error("no puedo invertir, no tengo carta en la mano")
   }
 };
 function run_op(op){
-  console.log(op)
+  //console.log(op)
   switch(op.op){
     case "t"://tomar
       tomar(op.name);
@@ -111,30 +121,29 @@ function run_op(op){
     break;
   }
 }
-var cond=function(conditions){
-    var r=false;
-    var c=conditions.length;
-    for(var i=0;i<c;i++){
+let cond=function(conditions){
+    let r=false;
+    const c=conditions.length;
+    for(let i=0;i<c;i++){
       switch(conditions[i].type){
         case "empty":
-          if (!pilas.hasOwnProperty(conditions[i].name)){
-            console.log("no puedo comparar, la pila "+conditions[i].name+" no existe");
-            break;
-            break;
+          if (!pilasByName.hasOwnProperty(conditions[i].name)){
+            throw new Error("no puedo comparar, la pila "+conditions[i].name+" no existe")
+            return r
           }
           switch(conditions[i].cond){
             case "e":
-              r=(pilas[conditions[i].name].length==0);
+              r=(pilasByName[conditions[i].name].length==0);
             break;
             case "n":
-              r=(pilas[conditions[i].name].length!=0);
+              r=(pilasByName[conditions[i].name].length!=0);
             break;
           }
         break;
         case "estado":
           if(mano.length!=1){
-            console.log("no puedo comparar, no tengo carta en la mano");
-            //$scope.stop();
+            throw new Error("no puedo comparar, no tengo carta en la mano")
+            return r
           }
           switch(conditions[i].cond){
             case "e":
@@ -147,8 +156,8 @@ var cond=function(conditions){
         break;
         case "valor":
           if(mano.length!=1){
-            console.log("no puedo comparar, no tengo carta en la mano");
-            //$scope.stop();
+            throw new Error("no puedo comparar, no tengo carta en la mano")
+            return r
           }
           switch(conditions[i].rel){
             case "eq":
@@ -181,8 +190,8 @@ var cond=function(conditions){
         break;
         case "palo":
           if(mano.length!=1){
-            console.log("no puedo comparar, no tengo carta en la mano");
-            //$scope.stop();
+            throw new Error("no puedo comparar, no tengo carta en la mano");
+            return r
           }
           switch(conditions[i].cond){
             case "e":
@@ -202,9 +211,9 @@ var cond=function(conditions){
     //console.log(r);
     return r;
   }
-export function run_program(sentencias){
-  var l=sentencias.length;
-  for(var i=0;i<l;i++){
+function _run_program(sentencias){
+  let l=sentencias.length;
+  for(let i=0;i<l;i++){
     //console.log(sentencias[i].type)
     switch(sentencias[i].type)
     {
@@ -216,15 +225,15 @@ export function run_program(sentencias){
         {
           case "w":
             while(cond(sentencias[i].conditions)){
-              run_program(sentencias[i].sentencias);
+              _run_program(sentencias[i].sentencias);
             }
           break;
           case "i":
             if(cond(sentencias[i].conditions)){
-              run_program(sentencias[i].on_true);
+              _run_program(sentencias[i].on_true);
             }else{
               if(sentencias[i].on_false!=null){
-                run_program(sentencias[i].on_false);
+                _run_program(sentencias[i].on_false);
               }
             }
           break;
@@ -232,4 +241,16 @@ export function run_program(sentencias){
       break;
     }
   }
+}
+export function run_program(sentencias,cbk){
+  return new Promise((resolve,reject)=>{
+    try{
+      _run_program(sentencias)
+      resolve()
+    }catch(e){
+      reject(e)
+    }finally{
+      cbk()
+    }
+  })
 }
