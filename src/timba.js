@@ -16,7 +16,7 @@ export function initStacks(parsed){
 
   const palos=["bastos","copas","espadas","oros"];
   const valores=[1,2,3,4,5,6,7,10,11,12];
-
+  pilas=[]
   for (let p = 0, len = parsed.pilas.length; p < len; p++) {
     let pila={};
     pila.name=parsed.pilas[p].nombre

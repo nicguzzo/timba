@@ -90,7 +90,7 @@ class App extends Component {
         <div style={{width:600}} >
           <input type='file' onChange={this.onLoadFile} />
           <button onClick={this.onParse}>parse</button>
-          <button onClick={this.onRun}>run</button>
+          <button onClick={this.onRun} disabled={!this.state.parsed}>run</button>
           <textarea value={this.state.code} onChange={this.updateCode} cols={80} rows={40}/>
         </div>
         <div style={ {backgroundImage: 'img/bg.jpg'} }>
