@@ -59,6 +59,7 @@ class App extends Component {
       let code=this.state.code.replace(/#.*?$/gm," \n").toLowerCase()
       //console.log(code)
       parsed=parser.parse(code);
+      console.log(parsed)
       this.setState({parsed: parsed}, () => {
         let [pilas,mano]=timba.initStacks(parsed)
         this.setState( { stacks: pilas ,hand:mano} )

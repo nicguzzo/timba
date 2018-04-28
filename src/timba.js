@@ -265,10 +265,14 @@ export function nextOP(){
       return 1
     }
     if(eStack){
-      //console.log('eStack',eStack)
-      if(eStack.sentences[eStack.num]){
-        line=eStack.sentences[eStack.num].loc.start.line
+     // console.log('eStack',eStack)
+      
+      if(eStack.num>=eStack.sentences.length){
+        line=eStack.sentences[eStack.num-1].loc.end.line-1                    
+      }else{
+        line=eStack.sentences[eStack.num].loc.start.line-1
       }
+      
       if(eStack.sentences[eStack.num] && eStack.sentences[eStack.num].conditions){
         //console.log('.type ',eStack.sentences[eStack.num])
         if( eStack.sentences[eStack.num].type==="c"){
@@ -279,7 +283,10 @@ export function nextOP(){
                 executionStack[stackLevel].num=0
               }
             }else{
-              console.log("wwww= ") 
+             // console.log("wwww= ") 
+              if(eStack.sentences[eStack.num]){
+                line=eStack.sentences[eStack.num].loc.end.line
+              }
               executionStack[stackLevel].num++
               if(stackLevel>=1){
                 executionStack.pop()
@@ -287,9 +294,12 @@ export function nextOP(){
               }
             }
           }else{
-            if( eStack.sentences[eStack.num].control==="i"){
+            if( eStack.sentences[eStack.num].control==="i"){              
               if(eStack.sentences && eStack.num>=eStack.sentences.length){
-                
+                //console.log("iiii= ") 
+                if(eStack.sentences[eStack.num] && eStack.sentences[eStack.num].endif){
+                  line=eStack.sentences[eStack.num].endif.loc.end.line
+                }
                 if(stackLevel>=1){
                   executionStack.pop()
                   stackLevel--
@@ -319,7 +329,7 @@ export function nextOP(){
               stackLevel++
             }
             if( eStack.sentences[eStack.num].control==="i"){
-              //console.log("iiii= ") 
+              
               if(cond(eStack.sentences[eStack.num].conditions)){
                 executionStack.push({
                   num: 0,
@@ -337,11 +347,17 @@ export function nextOP(){
           break;
         }
       }else{
+        /*if(executionStack[stackLevel].sentences[executionStack[stackLevel].num] &&
+           executionStack[stackLevel].sentences[executionStack[stackLevel].num].endif){
+          console.log("endif= ") 
+          line=executionStack[stackLevel].sentences[executionStack[stackLevel].num].endif.loc.end.line
+        }*/
         executionStack[stackLevel].num++
         if(stackLevel>=1){
           executionStack.pop()
           stackLevel--
         }
+
       }
     }
   }catch(e){

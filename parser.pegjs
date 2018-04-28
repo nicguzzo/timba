@@ -38,8 +38,8 @@ iterativa = "mientras" __ condiciones: condicion __ sentencias: sentencias _ "re
   return {type: 'c', control: "w",conditions: condiciones, sentencias: sentencias ,loc: location()};
 }
 
-seleccion = "si" __ condiciones:condicion __ on_true: (s:sentencias _ {return s;})? "sino" __ on_false: (s:sentencias _ {return s;})? "nada" __ "mas" _ {
-  return {type: 'c', control: "i",conditions: condiciones, on_true: on_true,on_false: on_false,loc: location()};
+seleccion = "si" __ condiciones:condicion __ on_true: (s:sentencias _ {return s;})? "sino" __ on_false: (s:sentencias _ {return s;})? endif: ( "nada" { return {loc: location()}; } ) __ "mas"  _ {
+  return {type: 'c', control: "i",conditions: condiciones, on_true: on_true,on_false: on_false,loc: location(), endif: endif};
 }
 
 condicion =  head:condicion_simple  tail:( _ op_logico:( "y" / "o" ) _  cs:condicion_simple  { return {cond_s: cs,op_logico:op_logico};} )*
