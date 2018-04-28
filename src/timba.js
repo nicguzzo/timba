@@ -17,6 +17,7 @@ export function initStacks(parsed){
   const palos=["bastos","copas","espadas","oros"];
   const valores=[1,2,3,4,5,6,7,10,11,12];
   pilas=[]
+  mano=[]
   for (let p = 0, len = parsed.pilas.length; p < len; p++) {
     let pila={};
     pila.name=parsed.pilas[p].nombre
@@ -66,7 +67,7 @@ export function initStacks(parsed){
     pilasByName[pila.name]=pila.cards
   }
 
-  console.log("pilas",pilasByName)
+  //console.log("pilas",pilasByName)
   return [pilas,mano];
 }
 function tomar(name){
@@ -251,19 +252,23 @@ export function runProgram(sentencias,cbk){
 let executionStack=[]
 let stackLevel=0
 let executionTimer=null
-
+let line=1
 
 export function nextOP(){
+  
   //console.log('stackLevel',stackLevel)
   try{
     let eStack=executionStack[stackLevel]
     if(stackLevel===0 && eStack.sentences && eStack.num>=eStack.sentences.length){
       console.log("stopping")
       clearInterval(executionTimer)
-      return
+      return 1
     }
     if(eStack){
       //console.log('eStack',eStack)
+      if(eStack.sentences[eStack.num]){
+        line=eStack.sentences[eStack.num].loc.start.line
+      }
       if(eStack.sentences[eStack.num] && eStack.sentences[eStack.num].conditions){
         //console.log('.type ',eStack.sentences[eStack.num])
         if( eStack.sentences[eStack.num].type==="c"){
@@ -344,6 +349,7 @@ export function nextOP(){
     console.error(e.message)
     alert(e.message)
   }
+  return line;
 }
 export function debugProgram(sentencias,timeout=0,upd){
   executionStack=[]
@@ -358,4 +364,7 @@ export function debugProgram(sentencias,timeout=0,upd){
         upd()
     }, timeout)
   }
+}
+export function stopProgram(){
+  clearInterval(executionTimer)
 }

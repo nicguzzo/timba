@@ -18,15 +18,15 @@ sentencia = operativa / control
 
 operativa  = tomar / depositar / invertir
 
-tomar = tome __ "de" __ pila __  name: nombrepila _ { return {type: 'o', op: 't', name: name}; }
+tomar = tome __ "de" __ pila __  name: nombrepila _ { return {type: 'o', op: 't', name: name,loc: location()}; }
 
 tome = ("tome" (__ "una" (__ "carta")? ) ? )
 
-depositar = deposite __ "en" __ pila __ name: nombrepila _ { return {type: 'o', op: 'd', name: name}; }
+depositar = deposite __ "en" __ pila __ name: nombrepila _ { return {type: 'o', op: 'd', name: name,loc: location()}; }
 
 deposite = "depositela" / ("deposite" __ carta)
 
-invertir = invierta _ { return {type: 'o', op: 'i'}; }
+invertir = invierta _ { return {type: 'o', op: 'i',loc: location()}; }
 
 invierta = "inviertala" / ("invierta" __ carta)
 
@@ -35,11 +35,11 @@ nombrepila = name: [a-zA-Z0-9]+ {return name.join("")}
 control = seleccion / iterativa
 
 iterativa = "mientras" __ condiciones: condicion __ sentencias: sentencias _ "repita" _ {
-  return {type: 'c', control: "w",conditions: condiciones, sentencias: sentencias };
+  return {type: 'c', control: "w",conditions: condiciones, sentencias: sentencias ,loc: location()};
 }
 
 seleccion = "si" __ condiciones:condicion __ on_true: (s:sentencias _ {return s;})? "sino" __ on_false: (s:sentencias _ {return s;})? "nada" __ "mas" _ {
-  return {type: 'c', control: "i",conditions: condiciones, on_true: on_true,on_false: on_false};
+  return {type: 'c', control: "i",conditions: condiciones, on_true: on_true,on_false: on_false,loc: location()};
 }
 
 condicion =  head:condicion_simple  tail:( _ op_logico:( "y" / "o" ) _  cs:condicion_simple  { return {cond_s: cs,op_logico:op_logico};} )*

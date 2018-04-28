@@ -1,7 +1,7 @@
 definicion de programa
-
-mientras la pila Mazo no esta vacia
-  tome de pila Mazo,
+#comentario
+mientras la pila M no esta vacia
+  tome de pila M,
   si la carta es del palo oros
     depositela en pila Oro
   sino 
@@ -21,7 +21,7 @@ mientras la pila Mazo no esta vacia
 repita
 ;
 ucp ejecute con las siguientes cartas:
-pila Mazo tiene un mazo de 40 cartas ^,
+pila M tiene un mazo de 40 cartas ^,
 pila Basto no tiene cartas,
 pila Espada no tiene cartas,
 pila Copa no tiene cartas,

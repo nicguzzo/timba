@@ -174,7 +174,7 @@ function peg$parse(input, options) {
         });
         return result;
       },
-      peg$c27 = function(name) { return {type: 'o', op: 't', name: name}; },
+      peg$c27 = function(name) { return {type: 'o', op: 't', name: name,loc: location()}; },
       peg$c28 = "tome",
       peg$c29 = peg$literalExpectation("tome", false),
       peg$c30 = "una",
@@ -183,12 +183,12 @@ function peg$parse(input, options) {
       peg$c33 = peg$literalExpectation("carta", false),
       peg$c34 = "en",
       peg$c35 = peg$literalExpectation("en", false),
-      peg$c36 = function(name) { return {type: 'o', op: 'd', name: name}; },
+      peg$c36 = function(name) { return {type: 'o', op: 'd', name: name,loc: location()}; },
       peg$c37 = "depositela",
       peg$c38 = peg$literalExpectation("depositela", false),
       peg$c39 = "deposite",
       peg$c40 = peg$literalExpectation("deposite", false),
-      peg$c41 = function() { return {type: 'o', op: 'i'}; },
+      peg$c41 = function() { return {type: 'o', op: 'i',loc: location()}; },
       peg$c42 = "inviertala",
       peg$c43 = peg$literalExpectation("inviertala", false),
       peg$c44 = "invierta",
@@ -201,7 +201,7 @@ function peg$parse(input, options) {
       peg$c51 = "repita",
       peg$c52 = peg$literalExpectation("repita", false),
       peg$c53 = function(condiciones, sentencias) {
-        return {type: 'c', control: "w",conditions: condiciones, sentencias: sentencias };
+        return {type: 'c', control: "w",conditions: condiciones, sentencias: sentencias ,loc: location()};
       },
       peg$c54 = "si",
       peg$c55 = peg$literalExpectation("si", false),
@@ -214,7 +214,7 @@ function peg$parse(input, options) {
       peg$c62 = "mas",
       peg$c63 = peg$literalExpectation("mas", false),
       peg$c64 = function(condiciones, on_true, on_false) {
-        return {type: 'c', control: "i",conditions: condiciones, on_true: on_true,on_false: on_false};
+        return {type: 'c', control: "i",conditions: condiciones, on_true: on_true,on_false: on_false,loc: location()};
       },
       peg$c65 = "y",
       peg$c66 = peg$literalExpectation("y", false),
