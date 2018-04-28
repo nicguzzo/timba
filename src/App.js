@@ -98,7 +98,10 @@ class App extends Component {
   onRunS= (e) => {
     this.setState( { debug:false,next:false })
     if(this.state.parsed){
-      timba.debugProgram(this.state.parsed.sentencias,100,()=>this.setState( { stacks: this.state.stacks,debug:false }) )
+      timba.debugProgram(this.state.parsed.sentencias,300,(line)=>{
+        this.refs.aceEditor.editor.gotoLine(line, 0,true)
+        this.setState( { stacks: this.state.stacks,debug:false })
+      })
     }
   }
   onStop= (e) => { 
@@ -113,7 +116,7 @@ class App extends Component {
       }
       const line=timba.nextOP()
       console.log("line ",line)
-      this.refs.aceEditor.editor.gotoLine(line, 0)
+      this.refs.aceEditor.editor.gotoLine(line, 0,true)
       this.setState( { stacks: this.state.stacks,debug:false })
     }
 
@@ -123,10 +126,10 @@ class App extends Component {
     let render_stacks=this.state.stacks.map( (s,i)=>{
       //console.log(s)
       //console.log(i)
-      return <Stack stackName={s.name} cards={s.cards} x={510+i*120} y={200} key={'stack_'+i} />
+      return <Stack stackName={s.name} cards={s.cards} x={530+i*120} y={200} key={'stack_'+i} />
     },this)
     return (
-      <div style={ {backgroundImage: `url('img/bg.jpg')`,height: "100%",backgroundRepeat: 'repeat'} }>
+      <div style={ {backgroundImage: `url('img/bg.jpg')`,height: "100%",backgroundRepeat: 'repeat',paddingLeft: "20px"} }>
         <div style={{width:600 , height: 40 , paddingTop: 20} } >
           
           
@@ -144,7 +147,7 @@ class App extends Component {
 
         </div>
         
-        <Stack stackName="Mano" cards={this.state.hand} x={510} y={20} />
+        <Stack stackName="Mano" cards={this.state.hand} x={530} y={20} />
         <AceEditor
           width="500px"
           height="500px"

@@ -376,8 +376,8 @@ export function debugProgram(sentencias,timeout=0,upd){
   //console.log('executionStack',executionStack)
   if(timeout>0){
     executionTimer=setInterval(()=>{
-        nextOP()
-        upd()
+        const line=nextOP()
+        upd(line)
     }, timeout)
   }
 }

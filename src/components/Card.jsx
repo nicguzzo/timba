@@ -13,7 +13,7 @@ class Card extends Component {
       im="img/cards/carta.png"
     }
     return (
-      <div style={ {position: 'absolute', top: (20+i*20), zIndex: i } } >
+      <div style={ {position: 'absolute', top: (25+i*20), zIndex: i } } >
         <img src={im} alt=""/>
       </div>
     )
