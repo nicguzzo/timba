@@ -1,7 +1,10 @@
+import parser from './parser';
+
 let pilas=[]
 let pilasByName={}
 let mano=[]
-
+var exec_error=""
+let parsed=null
 function shuffle(a) {
   let j, x, i;
   for (i = a.length; i; i--) {
@@ -11,16 +14,54 @@ function shuffle(a) {
     a[j] = x;
   }
 }
-
+export function get_exec_error(){
+  return exec_error
+}
+function onError(e){
+  exec_error=e.message
+  if (!(typeof e.expected === 'undefined')){
+    var expected=""
+    e.expected.forEach(function (item,index,arr) {
+      if (item.type === "literal"){
+        expected+=", \""+item.text+"\"";
+      }
+    });
+    const msg="se esperaba \"" +expected+ " pero se encontró \""+ e.found+"\" en la linea "+e.location.start.line+" columna "+e.location.start.column
+    exec_error=msg
+  }else{
+    console.log(e);
+    exec_error=e.message
+  }
+}
+export function parse (code){
+  //console.log("parsing timba!!");
+  console.log('code',code)
+  let parsed=null
+  try{
+    //call the peg parser, if all went well create json
+    //representation of the tree, and create the stacks
+    parsed=parser.parse(code.replace(/#.*?$/gm," \n").toLowerCase());
+    console.log(parsed)  
+  }catch(e){
+    onError(e)
+  }finally{
+    initStacks(parsed)
+  }
+  return parsed
+}
+export function getStacks(parsed){
+  return [pilas,mano];
+}
 export function initStacks(parsed){
 
   const palos=["bastos","copas","espadas","oros"];
   const valores=[1,2,3,4,5,6,7,10,11,12];
   pilas=[]
+  pilasByName={}
   mano=[]
   for (let p = 0, len = parsed.pilas.length; p < len; p++) {
     let pila={};
-    pila.name=parsed.pilas[p].nombre
+    pila.name=parsed.pilas[p].name
     pila.cards=[]
     
     switch(parsed.pilas[p].contenido.tipo){
@@ -64,10 +105,10 @@ export function initStacks(parsed){
       break;
     }
     pilas.push(pila)
+    
     pilasByName[pila.name]=pila.cards
   }
 
-  //console.log("pilas",pilasByName)
   return [pilas,mano];
 }
 function tomar(name){
@@ -116,65 +157,81 @@ function runOp(op){
     break;
   }
 }
+function checkStackExists(name){
+  return pilasByName.hasOwnProperty(name)
+}
+function checkStackEmpty(name){
+  return (pilasByName[name].length===0)
+}
 let cond=function(conditions){
-    let r=false;
+    let rr=false;
     const c=conditions.length;
+    //console.log("conditions",conditions)
     for(let i=0;i<c;i++){
-      switch(conditions[i].type){
-        case "empty":
-          if (!pilasByName.hasOwnProperty(conditions[i].name)){
-            throw new Error("no puedo comparar, la pila "+conditions[i].name+" no existe")
-            return r
+      let r=false;
+      let cond=conditions[i]
+
+      if(cond.hasOwnProperty('op_logico')){
+        cond=cond.cond
+      }
+      //console.log("cond",cond)
+
+      switch(cond.type){
+        case "empty":{
+          //console.log("empty ",cond.name)
+          if (!checkStackExists(cond.name)){
+            throw new Error("no puedo comparar, la pila "+cond.name+" no existe")
           }
-          switch(conditions[i].cond){
+          switch(cond.cond){
             case "e":
-              r=(pilasByName[conditions[i].name].length==0);
+              r=(pilasByName[cond.name].length===0);
             break;
             case "n":
-              r=(pilasByName[conditions[i].name].length!=0);
+              r=(pilasByName[cond.name].length!==0);
             break;
           }
+          //console.log("empty ",cond.name," r=",r)
+        }
         break;
-        case "estado":
-          if(mano.length!=1){
+        case "estado":{
+          if(mano.length!==1){
             throw new Error("no puedo comparar, no tengo carta en la mano")
-            return r
           }
-          switch(conditions[i].cond){
+          switch(cond.cond){
             case "e":
-              r=(mano[0].estado==0);
+              r=(mano[0].estado===0);
             break;
             case "n":
-              r=(mano[0].estado!=0);
+              r=(mano[0].estado!==0);
             break;
           }
+        }
         break;
-        case "valor":
-          if(mano.length!=1){
+        case "valor":{
+          if(mano.length!==1){
             throw new Error("no puedo comparar, no tengo carta en la mano")
-            return r
           }
-          switch(conditions[i].rel){
+          switch(cond.rel){
             case "eq":
-              r= mano[0].num == conditions[i].num
+              r= mano[0].num === cond.num
             break;
             case "ne":
-              r= mano[0].num != conditions[i].num
+              r= mano[0].num !== cond.num
             break;
             case "gt":
-              r= mano[0].num >  conditions[i].num
+              r= mano[0].num >  cond.num
             break;
             case "lt":
-              r= mano[0].num <  conditions[i].num
+              r= mano[0].num <  cond.num
             break;
             case "gte":
-              r= mano[0].num >= conditions[i].num
+              r= mano[0].num >= cond.num
             break;
             case "lte":
-              r= mano[0].num <= conditions[i].num
+              r= mano[0].num <= cond.num
             break;
           }
-          switch(conditions[i].cond){
+          switch(cond.cond){
             case "e":
 
             break;
@@ -182,29 +239,106 @@ let cond=function(conditions){
               r=!r;
             break;
           }
+        }
         break;
-        case "palo":
+        case "palo":{
           if(mano.length!=1){
             throw new Error("no puedo comparar, no tengo carta en la mano");
-            return r
           }
-          switch(conditions[i].cond){
+          switch(cond.cond){
             case "e":
-              r=(mano[0].palo==conditions[i].palo);
+              r=(mano[0].palo===cond.palo);
             break;
             case "n":
-              r=(mano[0].palo!=conditions[i].palo);
+              r=(mano[0].palo!==cond.palo);
             break;
           }
+        }
         break;
-        case "valor_tope":
+        case "valor_tope":{
+          if(!checkStackExists(cond.name)){
+            throw new Error("no puedo comparar, la pila "+cond.name+" no existe")
+          }
+          if(checkStackEmpty(cond.name)){
+            throw new Error("no puedo comparar, la pila "+cond.name+" esta vacia")
+          }
+          if(mano.length!=1){
+            throw new Error("no puedo comparar, no tengo carta en la mano");
+          }
+          const tope=pilasByName[cond.name].length-1
+          const num=pilasByName[cond.name][tope].num;
+          switch(cond.rel){
+            case "eq":
+              r= (num===mano[0].num)
+            break;
+            case "ne":
+              r= (num!==mano[0].num)
+            break;
+            case "gt":
+              r= mano[0].num > num
+            break;
+            case "lt":
+              r= mano[0].num < num
+            break;
+            case "gte":
+              r= mano[0].num >= num
+            break;
+            case "lte":
+              r= mano[0].num <= num
+            break;
+          }
+          switch(cond.cond){
+            case "e":
+              
+            break;
+            case "n":
+              r=!r;
+            break;
+          }
+        }
         break;
         case "palo_tope":
+        {
+          if(checkStackExists(conditions[i])){
+            throw new Error("no puedo comparar, la pila "+cond.name+" no existe")
+          }
+          if(checkStackEmpty(cond.name)){
+            throw new Error("no puedo comparar, la pila "+cond.name+" esta vacia")
+          }
+          if(mano.length!=1){
+            throw new Error("no puedo comparar, no tengo carta en la mano");
+          }
+          const tope=pilasByName[cond.name].length-1
+          const suit=pilasByName[cond.name][tope].suit;
+          switch(cond.cond){
+            case "e":
+              r=(mano[0].palo===suit)
+            break;
+            case "n":
+              r=(mano[0].palo!==suit)
+            break;
+          }
+        }
         break;
       }
+      //console.log("r[",i,"]=",r);
+      if(conditions[i].op_logico){
+        //console.log("op_logico",conditions[i].op_logico);
+        //console.log("op_logico rr=",rr,' r=',r);
+        switch(conditions[i].op_logico){
+          case "y":
+           rr = rr && r
+          break;
+          case "o":
+            rr = rr || r
+          break;
+        }
+      }else{
+        rr=r
+      }
     }
-    //console.log(r);
-    return r;
+    //console.log("cond=",rr);
+    return rr;
   }
 function _runProgram(sentencias){
   let l=sentencias.length;
@@ -242,8 +376,7 @@ export function runProgram(sentencias,cbk){
   try{
     _runProgram(sentencias)
   }catch(e){
-    console.error(e.message)
-    alert(e.message)
+    onError(e)
   }finally{
     cbk()
   }
@@ -256,58 +389,25 @@ let line=1
 
 export function nextOP(){
   
-  //console.log('stackLevel',stackLevel)
   try{
-    let eStack=executionStack[stackLevel]
+    const eStack=executionStack[stackLevel]
+    
     if(stackLevel===0 && eStack.sentences && eStack.num>=eStack.sentences.length){
       console.log("stopping")
       clearInterval(executionTimer)
       return 1
     }
-    if(eStack){
+    //console.log('executionStack',executionStack)
+    //console.log('stackLevel',stackLevel)
+    if(eStack && eStack.sentences){
+      //console.log("num=",eStack.num," sentences.length",eStack.sentences.length)
+      
      // console.log('eStack',eStack)
       
       if(eStack.num>=eStack.sentences.length){
-        line=eStack.sentences[eStack.num-1].loc.end.line-1                    
+        line=eStack.sentences[eStack.num-1].loc.end.line-1  
       }else{
         line=eStack.sentences[eStack.num].loc.start.line-1
-      }
-      
-      if(eStack.sentences[eStack.num] && eStack.sentences[eStack.num].conditions){
-        //console.log('.type ',eStack.sentences[eStack.num])
-        if( eStack.sentences[eStack.num].type==="c"){
-          if( eStack.sentences[eStack.num].control==="w"){
-            
-            if(cond(eStack.sentences[eStack.num].conditions)){
-              if(eStack.sentences && eStack.num>=eStack.sentences.length){
-                executionStack[stackLevel].num=0
-              }
-            }else{
-             // console.log("wwww= ") 
-              if(eStack.sentences[eStack.num]){
-                line=eStack.sentences[eStack.num].loc.end.line
-              }
-              executionStack[stackLevel].num++
-              if(stackLevel>=1){
-                executionStack.pop()
-                stackLevel--
-              }
-            }
-          }else{
-            if( eStack.sentences[eStack.num].control==="i"){              
-              if(eStack.sentences && eStack.num>=eStack.sentences.length){
-                //console.log("iiii= ") 
-                if(eStack.sentences[eStack.num] && eStack.sentences[eStack.num].endif){
-                  line=eStack.sentences[eStack.num].endif.loc.end.line
-                }
-                if(stackLevel>=1){
-                  executionStack.pop()
-                  stackLevel--
-                }
-              }
-            }
-          }
-        }
       }
       if(eStack.sentences && eStack.num<eStack.sentences.length){
 
@@ -320,16 +420,20 @@ export function nextOP(){
           case "c":// control
 
             if( eStack.sentences[eStack.num].control==="w"){
-              //console.log("tttt= ")  
-              executionStack.push({
-                num: 0,
-                sentences: eStack.sentences[eStack.num].sentencias,
-              })
-              //executionStack[stackLevel].num++
-              stackLevel++
-            }
-            if( eStack.sentences[eStack.num].control==="i"){
-              
+              if(cond(eStack.sentences[eStack.num].conditions)){
+                executionStack.push({
+                  num: 0,
+                  sentences: eStack.sentences[eStack.num].sentencias,
+                })
+                //console.log('executionStack push w',executionStack)
+                stackLevel++
+              }else{
+                
+                executionStack[stackLevel].num++
+                
+              }
+            }else if( eStack.sentences[eStack.num].control==="i"){
+              //console.log("i2") 
               if(cond(eStack.sentences[eStack.num].conditions)){
                 executionStack.push({
                   num: 0,
@@ -341,29 +445,33 @@ export function nextOP(){
                   sentences:  eStack.sentences[eStack.num].on_false
                 })
               }
+              //console.log('executionStack push i',executionStack)
               executionStack[stackLevel].num++
               stackLevel++
             }
           break;
         }
       }else{
-        /*if(executionStack[stackLevel].sentences[executionStack[stackLevel].num] &&
-           executionStack[stackLevel].sentences[executionStack[stackLevel].num].endif){
-          console.log("endif= ") 
-          line=executionStack[stackLevel].sentences[executionStack[stackLevel].num].endif.loc.end.line
-        }*/
         executionStack[stackLevel].num++
         if(stackLevel>=1){
           executionStack.pop()
+          //console.log('executionStack pop',executionStack)
           stackLevel--
-        }
 
+        }
+      }
+    }else{
+      if(stackLevel>=1){
+        executionStack.pop()
+        //console.log('executionStack pop',executionStack)
+        stackLevel--
       }
     }
   }catch(e){
     clearInterval(executionTimer)
-    console.error(e.message)
-    alert(e.message)
+    console.error(e)
+    onError(e)
+    
   }
   return line;
 }

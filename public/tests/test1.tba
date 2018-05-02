@@ -1,0 +1,77 @@
+definicion de programa
+
+#oros,copas,espadas,bastos
+mientras la pila A no esta vacia
+  mientras la pila A no esta vacia y pila B esta vacia
+    tome de pila A,
+    si la carta es del palo oros
+      depositela en pila B
+    sino
+      depositela en pila C
+    nada mas
+  repita,
+  si pila B no esta vacia
+    tome de pila B,
+    depositela en pila D
+  sino nada mas,
+  mientras la pila C no esta vacia
+    tome de pila C,
+    depositela en pila A
+  repita,
+  mientras la pila A no esta vacia y pila B esta vacia
+    tome de pila A,
+    si la carta es del palo copas
+      depositela en pila B
+    sino
+      depositela en pila C
+    nada mas
+  repita,
+  si pila B no esta vacia
+    tome de pila B,
+    depositela en pila D
+  sino nada mas,
+  mientras la pila C no esta vacia
+    tome de pila C,
+    depositela en pila A
+  repita,
+  mientras la pila A no esta vacia y pila B esta vacia
+    tome de pila A,
+    si la carta es del palo espadas
+      depositela en pila B
+    sino
+      depositela en pila C
+    nada mas
+  repita,
+  si pila B no esta vacia
+    tome de pila B,
+    depositela en pila D
+  sino nada mas,
+  mientras la pila C no esta vacia
+    tome de pila C,
+    depositela en pila A
+  repita,
+  mientras la pila A no esta vacia y pila B esta vacia
+    tome de pila A,
+    si la carta es del palo bastos
+      depositela en pila B
+    sino
+      depositela en pila C
+    nada mas
+  repita,
+  si pila B no esta vacia
+    tome de pila B,
+    depositela en pila D
+  sino nada mas,
+  mientras la pila C no esta vacia
+    tome de pila C,
+    depositela en pila A
+  repita
+repita
+
+;
+ucp ejecute con las siguientes cartas:
+pila A tiene un mazo de 40 cartas^,
+pila B no tiene cartas,
+pila C no tiene cartas,
+pila D no tiene cartas
+.

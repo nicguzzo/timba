@@ -42,7 +42,7 @@ seleccion = "si" __ condiciones:condicion __ on_true: (s:sentencias _ {return s;
   return {type: 'c', control: "i",conditions: condiciones, on_true: on_true,on_false: on_false,loc: location(), endif: endif};
 }
 
-condicion =  head:condicion_simple  tail:( _ op_logico:( "y" / "o" ) _  cs:condicion_simple  { return {cond_s: cs,op_logico:op_logico};} )*
+condicion =  head: condicion_simple tail:( _ op_logico:( "y" / "o" ) _  cs:condicion_simple  { return {cond: cs,op_logico:op_logico};} )*
 {
   var result = [];
   [head].concat(tail).forEach(function(element) {
@@ -51,12 +51,7 @@ condicion =  head:condicion_simple  tail:( _ op_logico:( "y" / "o" ) _  cs:condi
   return result;
 }
 
-condicion_simple = condicion_pila_vacia
-                  / condicion_carta
-                  / cond_val
-                  / cond_suit
-                  / cond_suit_top
-                  / cond_val_top
+condicion_simple = condicion_pila_vacia / condicion_carta / cond_val_top / cond_val / cond_suit / cond_suit_top
 
 condicion_pila_vacia = pila __ name: nombrepila __ cond: esta_no_esta  __ "vacia" {
   return {type: "empty", name: name, cond: cond};
@@ -96,7 +91,7 @@ relacion=    gte:mayoriguala {return "gte";}/
              ne:distintode {return "ne";}/
              gt:mayorque {return "gt";}/
              lt:menorque {return "lt";}
-relacion2=
+relacionT=
   gte:mayorigual {return "gte";}/
   lte:menorigual {return "lte";}/
   eq:"igual" {return "eq";}/
@@ -107,19 +102,22 @@ devalor=  "de" __ "valor"
 cond_val=       carta __ cond:es_no_es (__ devalor)? __ rel:relacion __ num:numero  {
   return {type: "valor",cond:cond,rel:rel,num:num};
 }
+
 delpalo=        "del" __ "palo"
 quetopede=      "que" __ "tope" __ "de"
 paloquetopede=  "palo" __ quetopede
 valorquetopede= "valor" __ quetopede
+
 cond_suit=  carta __ cond:es_no_es _ delpalo? _ palo:palos  {
-  console.log({type: "palo",cond:cond,palo:palo});
   return {type: "palo",cond:cond,palo:palo};
 }
-cond_suit_top=  carta "es"__ "de" _ rel:relac _  paloquetopede  _  pila _ nombre:nombrepila {
-  return {type: "palo_tope",rel:rel,nombre:nombre};
+
+cond_suit_top=  carta __  "es"__ "de" __ rel:relac __  paloquetopede  __  pila __ nombre:nombrepila {
+  return {type: "palo_tope",rel:rel,name:nombre};
 }
-cond_val_top=   carta cond:es_no_es _ "de" _ rel:relacion2 _ valorquetopede _ pila _ nombre:nombrepila {
-  return {type: "valor_tope",cond:cond,rel:rel,nombre:nombre};
+
+cond_val_top=   carta __ cond:es_no_es __ "de" __ rel:relacionT __ valorquetopede __ pila __ nombre:nombrepila {
+  return {type: "valor_tope",cond:cond,rel:rel,name:nombre};
 }
 
 lista_de_pilas = head: descripcion_de_pila tail:(_ comma _ desc:descripcion_de_pila _ {return desc;} )* {
@@ -131,7 +129,7 @@ lista_de_pilas = head: descripcion_de_pila tail:(_ comma _ desc:descripcion_de_p
 }
 
 descripcion_de_pila = pila __ nombre:nombrepila __ contenido:contenido _ {
-  return {nombre: nombre, contenido: contenido};
+  return {name: nombre, contenido: contenido};
 }
 
 contenido = cont:(vacio / mazo / tiene){return cont;}

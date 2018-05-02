@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios'
-import parser from './parser';
+
 import Stack from './components/Stack.jsx';
 import Card from './components/Card.jsx';
 import * as timba from './timba.js'
@@ -21,9 +21,9 @@ class App extends Component {
       hand: [],
       debug: false,
       next: false,
-      parse_erros: ""
+      parse_errors: ""
     }
-    axios.get("tests/test.tba")
+    axios.get("tests/test1.tba")
     .then(response => {
       this.setState({code: response.data})
     });
@@ -52,34 +52,13 @@ class App extends Component {
   parse = () => {
     //console.log("parsing timba!!");
     let parsed=null
-    this.setState({parse_erros:""})
-    try{
-      //call the peg parser, if all went well create json
-      //representation of the tree, and create the stacks
-      let code=this.state.code.replace(/#.*?$/gm," \n").toLowerCase()
-      //console.log(code)
-      parsed=parser.parse(code);
-      console.log(parsed)
-      this.setState({parsed: parsed}, () => {
-        let [pilas,mano]=timba.initStacks(parsed)
-        this.setState( { stacks: pilas ,hand:mano} )
-      });
-    }catch(err){
-      // in case of syntax error, create error message and display it
-      //console.dir(err);
-      if (!(typeof err.expected === 'undefined')){
-        var expected=""
-        err.expected.forEach(function (item,index,arr) {
-          if (item.type === "literal"){
-            expected+=", \""+item.text+"\"";
-          }
-        });
-        const msg="se esperaba \"" +expected+ " pero se encontró \""+ err.found+"\" en la linea "+err.location.start.line+" columna "+err.location.start.column
-        this.setState({parse_erros:msg})
-      }else{
-        console.log(err);
-      }
-    }
+    this.setState({parse_errors:timba.get_exec_error()})
+    parsed=timba.parse(this.state.code)
+    console.log(parsed)
+    this.setState({parsed: parsed}, () => {
+      let [pilas,mano]=timba.getStacks(parsed)
+      this.setState( { stacks: pilas ,hand:mano} )
+    });
   }
   onParse= (e) => {
     e.preventDefault()
@@ -98,7 +77,7 @@ class App extends Component {
   onRunS= (e) => {
     this.setState( { debug:false,next:false })
     if(this.state.parsed){
-      timba.debugProgram(this.state.parsed.sentencias,300,(line)=>{
+      timba.debugProgram(this.state.parsed.sentencias,200,(line)=>{
         this.refs.aceEditor.editor.gotoLine(line, 0,true)
         this.setState( { stacks: this.state.stacks,debug:false })
       })
@@ -115,39 +94,45 @@ class App extends Component {
         timba.debugProgram(this.state.parsed.sentencias)
       }
       const line=timba.nextOP()
-      console.log("line ",line)
+      //console.log("line ",line)
       this.refs.aceEditor.editor.gotoLine(line, 0,true)
       this.setState( { stacks: this.state.stacks,debug:false })
     }
 
+  }
+  onOpen= (e) => { 
+    document.getElementById('file-upload').click()
   }
   render() {
     //<textarea id="editor" value={this.state.code} onChange={this.updateCode} />
     let render_stacks=this.state.stacks.map( (s,i)=>{
       //console.log(s)
       //console.log(i)
-      return <Stack stackName={s.name} cards={s.cards} x={530+i*120} y={200} key={'stack_'+i} />
+      return <Stack stackName={s.name} cards={s.cards} x={550+i*120} y={240} key={'stack_'+i} />
     },this)
     return (
-      <div style={ {backgroundImage: `url('img/bg.jpg')`,height: "100%",backgroundRepeat: 'repeat',paddingLeft: "20px"} }>
+      <div style={ {height: "100%",backgroundColor: '#272822',paddingLeft: "20px"} }>
+
+        <input id="file-upload" type="file" className="" onChange={this.onLoadFile} accept=".tba" 
+        />
         <div style={{width:600 , height: 40 , paddingTop: 20} } >
           
           
-          <label for="file-upload" className="custom-file-upload">
-             <a className="btn">Open</a>
-          </label>
-          <input id="file-upload" type="file" onChange={this.onLoadFile}/> &nbsp;
+          
+          <button className="btn" onClick={this.onOpen} > Abrir </button>
+          
 
-          <a className="btn" onClick={this.onParse} >Parse</a>&nbsp;
-          <a className={"btn "+ ((this.state.parsed) ? "": "disabled")} onClick={this.onRun}   >Run</a> &nbsp;
-          <a className={"btn "+ ((this.state.parsed) ? "": "disabled")} onClick={this.onRunS}  >Run slow</a> &nbsp;
-          <a className={"btn "+ ((this.state.parsed) ? "": "disabled")} onClick={this.onStop}  >Stop</a> &nbsp;
-          <a className={"btn "+ ((this.state.parsed) ? "": "disabled")} onClick={this.onNext}  >Next</a> &nbsp;
+          <button className="btn" onClick={this.onParse} >Verificar                                                 </button>
+          <button className={"btn "} disabled={!this.state.parsed} onClick={this.onRun}   >Ejecutar       </button>
+          <button className={"btn "} disabled={!this.state.debug} onClick={this.onRunS}  >Ejecutar lento </button>
+          <button className={"btn "} disabled={!this.state.parsed} onClick={this.onStop}  >Detener        </button>
+          <button className={"btn "} disabled={!this.state.next} onClick={this.onNext}  >Siguiente      </button>
           
 
         </div>
         
-        <Stack stackName="Mano" cards={this.state.hand} x={530} y={20} />
+        <Stack stackName="Mano" cards={this.state.hand} x={550} y={40} />
+        <br/>
         <AceEditor
           width="500px"
           height="500px"
@@ -173,7 +158,7 @@ class App extends Component {
         <br/>
 
         <div className="parseError" >
-            {this.state.parse_erros}
+            {this.state.parse_errors}
         </div>
 
         <div >

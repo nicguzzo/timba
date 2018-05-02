@@ -28,7 +28,7 @@ class Stack extends Component {
     const y=this.props.y
     return (
       <div style={ {position: 'absolute', left: x, top: y } }>
-        <b >{this.props.stackName}</b>
+        <b style={ {color: "#f9f9f9"} }>{this.props.stackName}</b>
         <div style={style }>
           {stack}
         </div>

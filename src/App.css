@@ -19,8 +19,8 @@
   border-radius: 7px;
   font-family: Arial;
   color: #ffffff;
-  font-size: 14px;
-  padding: 10px 20px 10px 20px;
+  font-size: 16px;
+  padding: 5px 5px 5px 5px;
   text-decoration: none;
   cursor: pointer;
 }
@@ -33,7 +33,11 @@
   background-image: -o-linear-gradient(top, #99cceb, #7299b3);
   background-image: linear-gradient(to bottom, #99cceb, #7299b3);
   text-decoration: none;
-
+}
+.btn:disabled {
+  background: #202a30;
+  
+  text-decoration: none;
 }
 input[type="file"] {
     display: none;
