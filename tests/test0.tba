@@ -1,0 +1,11 @@
+definicion de programa
+
+mientras la pila Mazo no esta vacia
+  tome de pila Mazo,
+  depositela en pila A
+repita
+;
+ucp ejecute con las siguientes cartas:
+pila Mazo tiene un mazo de 10 cartas ^,
+pila A no tiene cartas
+.

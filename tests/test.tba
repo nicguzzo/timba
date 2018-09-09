@@ -1,0 +1,29 @@
+definicion de programa
+#comentario
+mientras la pila M no esta vacia
+  tome de pila M,
+  si la carta es del palo oros
+    depositela en pila Oro
+  sino 
+    si la carta es del palo copas
+      depositela en pila Copa
+    sino 
+      si la carta es del palo espadas
+        depositela en pila Espada
+      sino 
+        si la carta es del palo bastos
+          depositela en pila Basto
+        sino 
+        nada mas
+      nada mas
+    nada mas
+  nada mas
+repita
+;
+ucp ejecute con las siguientes cartas:
+pila M tiene un mazo de 40 cartas ^,
+pila Basto no tiene cartas,
+pila Espada no tiene cartas,
+pila Copa no tiene cartas,
+pila Oro no tiene cartas
+.
