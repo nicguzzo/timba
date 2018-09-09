@@ -29,7 +29,7 @@ function onError(e){
     const msg="se esperaba \"" +expected+ " pero se encontró \""+ e.found+"\" en la linea "+e.location.start.line+" columna "+e.location.start.column
     exec_error=msg
   }else{
-    console.log(e);
+    console.log('error: ',e);
     exec_error=e.message
   }
 }
@@ -40,12 +40,17 @@ export function parse (code){
   try{
     //call the peg parser, if all went well create json
     //representation of the tree, and create the stacks
-    parsed=parser.parse(code.replace(/#.*?$/gm," \n").toLowerCase());
-    console.log(parsed)  
+    let cleancode=code.replace(/#.*?$/gm,"").toLowerCase()
+    console.log('cleancode: ',cleancode)
+    console.log('parsing...')
+    parsed=parser.parse(cleancode);
+    console.log('done.')
+    console.log('parsed: ',parsed)
   }catch(e){
     onError(e)
   }finally{
-    initStacks(parsed)
+    if(parsed)
+      initStacks(parsed)
   }
   return parsed
 }
@@ -63,7 +68,7 @@ export function initStacks(parsed){
     let pila={};
     pila.name=parsed.pilas[p].name
     pila.cards=[]
-    
+
     switch(parsed.pilas[p].contenido.tipo){
       case "vacio":
       break;
@@ -73,7 +78,7 @@ export function initStacks(parsed){
         }
       break;
       case "mazo_completo":
-       
+
         for (let i = 0, plen = palos.length; i < plen; i++) {
           for (let j = 0, vlen = valores.length; j < vlen; j++) {
             let e=parsed.pilas[p].contenido.estado;
@@ -86,7 +91,7 @@ export function initStacks(parsed){
         shuffle(pila.cards);
       break;
       case "mazo_n_cartas":
-        
+
         let tmp=[];
         for (let i = 0, plen = palos.length; i < plen; i++) {
           for (let j = 0, vlen = valores.length; j < vlen; j++) {
@@ -105,7 +110,7 @@ export function initStacks(parsed){
       break;
     }
     pilas.push(pila)
-    
+
     pilasByName[pila.name]=pila.cards
   }
 
@@ -125,7 +130,11 @@ function tomar(name){
 }
 function depositar(name){
   if(mano.length==1){
-    pilasByName[name].push(mano.pop());
+    if(pilasByName[name]){
+      pilasByName[name].push(mano.pop());
+    }else{
+      throw new Error("no puedo depositar, pila "+name+" no existe")
+    }
   }else{
     throw new Error("no puedo depositar, no tengo carta en la mano")
   }
@@ -211,6 +220,8 @@ let cond=function(conditions){
           if(mano.length!==1){
             throw new Error("no puedo comparar, no tengo carta en la mano")
           }
+          console.log("cond.rel: ",cond.rel)
+          console.log(mano[0].num,cond.rel, cond.num)
           switch(cond.rel){
             case "eq":
               r= mano[0].num === cond.num
@@ -289,7 +300,7 @@ let cond=function(conditions){
           }
           switch(cond.cond){
             case "e":
-              
+
             break;
             case "n":
               r=!r;
@@ -372,7 +383,7 @@ function _runProgram(sentencias){
   }
 }
 export function runProgram(sentencias,cbk){
-  
+
   try{
     _runProgram(sentencias)
   }catch(e){
@@ -380,7 +391,7 @@ export function runProgram(sentencias,cbk){
   }finally{
     cbk()
   }
-  
+
 }
 let executionStack=[]
 let stackLevel=0
@@ -388,10 +399,10 @@ let executionTimer=null
 let line=1
 
 export function nextOP(){
-  
+
   try{
     const eStack=executionStack[stackLevel]
-    
+
     if(stackLevel===0 && eStack.sentences && eStack.num>=eStack.sentences.length){
       console.log("stopping")
       clearInterval(executionTimer)
@@ -401,11 +412,11 @@ export function nextOP(){
     //console.log('stackLevel',stackLevel)
     if(eStack && eStack.sentences){
       //console.log("num=",eStack.num," sentences.length",eStack.sentences.length)
-      
+
      // console.log('eStack',eStack)
-      
+
       if(eStack.num>=eStack.sentences.length){
-        line=eStack.sentences[eStack.num-1].loc.end.line-1  
+        line=eStack.sentences[eStack.num-1].loc.end.line-1
       }else{
         line=eStack.sentences[eStack.num].loc.start.line-1
       }
@@ -428,12 +439,12 @@ export function nextOP(){
                 //console.log('executionStack push w',executionStack)
                 stackLevel++
               }else{
-                
+
                 executionStack[stackLevel].num++
-                
+
               }
             }else if( eStack.sentences[eStack.num].control==="i"){
-              //console.log("i2") 
+              //console.log("i2")
               if(cond(eStack.sentences[eStack.num].conditions)){
                 executionStack.push({
                   num: 0,
@@ -471,7 +482,7 @@ export function nextOP(){
     clearInterval(executionTimer)
     console.error(e)
     onError(e)
-    
+
   }
   return line;
 }

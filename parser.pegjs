@@ -77,14 +77,14 @@ es_no_es = n:( "no" __ )? "es"  {
 }
 
 relac=       e:"igual"  / n:"distinto"
-mayorigual = "mayor" __"o" __ "igual"
-menorigual = "menor" __"o" __ "igual"
-mayoriguala= mayorigual __ "a"
-menoriguala= menorigual __ "a"
-mayorque=    "mayor" __ "que"
-menorque=    "menor" __ "que"
-iguala=      "igual" __ "a"
-distintode=  "distinto" __ "de"
+mayorigual = ("mayor" __"o" __ "igual" ) / ">="
+menorigual = ("menor" __"o" __ "igual" ) / "<="
+mayoriguala= (mayorigual __ "a" ) / ">="
+menoriguala= (menorigual __ "a" ) / "<="
+mayorque=    ("mayor" __ "que" ) / ">"
+menorque=    ("menor" __ "que") / "<"
+iguala=      ("igual" __ "a" )/ "=="
+distintode=  ("distinto" __ "de" ) / "!="
 relacion=    gte:mayoriguala {return "gte";}/
              lte:menoriguala {return "lte";}/
              eq:iguala {return "eq";}/
@@ -173,7 +173,7 @@ descripcion_de_carta1 = num:numero __ "de" __ palo:palos _ inv: "^"? {
   if (!(typeof inv === 'undefined')){
     e=1;
   }
-  return {num: parseInt(num), palo: palo, estado: e};
+  return {num: num, palo: palo, estado: e};
 }
 descripcion_de_carta2 = num:numero _ palo:[bceo] _ inv: "^"? {
   var e=0;
@@ -181,11 +181,19 @@ descripcion_de_carta2 = num:numero _ palo:[bceo] _ inv: "^"? {
     e=1;
   }
   var p={"b":"bastos" , "c":"copas" , "e":"espadas" , "o":"oros"};
-  return {num: parseInt(num), palo: p[palo], estado: e};
+  return {num: num, palo: p[palo], estado: e};
 }
 
 palos = "bastos" / "copas" / "espadas" / "oros"
-numero = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "10" / "11" / "12"
+numero = num: (([1][0-2]) / ([0-7]))  {
+  console.log(typeof num)
+  console.log("numero: ",num)
+
+  if (typeof num === 'object')
+    return parseInt(num.join(""));
+  else
+    return parseInt(num);
+}
 
 pila =  ("la" __ )? "pila"
 carta = ("la" __ )? "carta"
