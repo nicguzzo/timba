@@ -2,6 +2,7 @@
   "name": "timba_web_react",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://nicguzzo.github.io/timba/",
   "dependencies": {
     "axios": "^0.18.0",
     "brace": "^0.11.1",

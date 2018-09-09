@@ -23,7 +23,7 @@ class App extends Component {
       next: false,
       parse_errors: ""
     }
-    axios.get("tests/test1.tba")
+    axios.get("tests/template.tba")
     .then(response => {
       this.setState({code: response.data})
     });
@@ -56,8 +56,10 @@ class App extends Component {
     parsed=timba.parse(this.state.code)
     console.log(parsed)
     this.setState({parsed: parsed}, () => {
-      let [pilas,mano]=timba.getStacks(parsed)
-      this.setState( { stacks: pilas ,hand:mano} )
+      if(parsed){
+        let [pilas,mano]=timba.getStacks(parsed)
+        this.setState( { stacks: pilas ,hand:mano,parse_errors:""} )
+      }
     });
   }
   onParse= (e) => {
